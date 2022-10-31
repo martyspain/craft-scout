@@ -31,12 +31,14 @@ class ScoutUtility extends Utility
         $engines = Scout::$plugin->getSettings()->getEngines();
 
         $stats = $engines->map(function (Engine $engine) {
+            $totalElements = $engine->scoutIndex->elements ? count($engine->scoutIndex->elements) : $engine->scoutIndex->criteria->count();
+
             return [
                 'name'        => $engine->scoutIndex->indexName,
                 'elementType' => $engine->scoutIndex->elementType,
                 'site'        => $engine->scoutIndex->criteria->siteId === '*' ? 'all' : Craft::$app->getSites()->getSiteById($engine->scoutIndex->criteria->siteId),
                 'indexed'     => $engine->getTotalRecords(),
-                'elements'    => $engine->scoutIndex->criteria->count(),
+                'elements'    => $totalElements,
                 'hasSettings' => $engine->scoutIndex->indexSettings ?? null,
             ];
         });

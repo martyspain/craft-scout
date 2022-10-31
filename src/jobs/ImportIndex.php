@@ -22,16 +22,23 @@ class ImportIndex extends BaseJob
             return;
         }
 
-        $elementsCount = $engine->scoutIndex->criteria->count();
+        $hasElements = $engine->scoutIndex->elements;
+        $elements = $hasElements ?: $engine->scoutIndex->criteria;
+        $totalElements = $hasElements ? count($elements) : $engine->scoutIndex->criteria->count();
+        $batchSize = Scout::$plugin->getSettings()->batch_size;
+
+        if ($hasElements) {
+            $batch = array_chunk($elements, $batchSize);
+        } else {
+            $batch = $elements->batch($batchSize);
+        }
+
         $elementsUpdated = 0;
-        $batch = $engine->scoutIndex->criteria->batch(
-            Scout::$plugin->getSettings()->batch_size
-        );
 
         foreach ($batch as $elements) {
             $engine->update($elements);
             $elementsUpdated += count($elements);
-            $this->setProgress($queue, $elementsUpdated / $elementsCount);
+            $this->setProgress($queue, $elementsUpdated / $totalElements);
         }
     }
 

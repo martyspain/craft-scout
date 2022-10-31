@@ -44,16 +44,22 @@ class IndexController extends Controller
             return $this->redirect(UrlHelper::url('utilities/'.ScoutUtility::id()));
         }
 
-        $elementsCount = $engine->scoutIndex->criteria->count();
-        $batch = $engine->scoutIndex->criteria->batch(
-            Scout::$plugin->getSettings()->batch_size
-        );
+        $hasElements = $engine->scoutIndex->elements;
+        $elements = $hasElements ?: $engine->scoutIndex->criteria;
+        $totalElements = $hasElements ? count($elements) : $engine->scoutIndex->criteria->count();
+        $batchSize = Scout::$plugin->getSettings()->batch_size;
+
+        if ($hasElements) {
+            $batch = array_chunk($elements, $batchSize);
+        } else {
+            $batch = $elements->batch($batchSize);
+        }
 
         foreach ($batch as $elements) {
             $engine->update($elements);
         }
 
-        Craft::$app->getSession()->setNotice("Updated {$elementsCount} element(s) in {$engine->scoutIndex->indexName}");
+        Craft::$app->getSession()->setNotice("Updated {$totalElements} element(s) in {$engine->scoutIndex->indexName}");
 
         return $this->redirect(UrlHelper::url('utilities/'.ScoutUtility::id()));
     }
