@@ -23,6 +23,9 @@ class ScoutIndex
     /** @var ElementQuery */
     public $criteria;
 
+    /** @var array|null */
+    public $elements = null;
+
     /** @var callable|string|array|\League\Fractal\TransformerAbstract */
     public $transformer;
 
@@ -64,6 +67,13 @@ class ScoutIndex
         }
 
         $this->criteria = $elementQuery;
+
+        return $this;
+    }
+
+    public function getElements(callable $elements): self
+    {
+        $this->elements = $elements();
 
         return $this;
     }
